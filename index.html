@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDIS 2B — Autorisation Véhicule Exceptionnel</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rouge:#c0392b;--rouge-f:#96281b;--rouge-c:#fde8e6;
+  --gris-f:#1a1a2e;--gris-m:#2d2d44;--gris-c:#f4f4f6;
+  --vert:#27ae60;--vert-c:#eafaf1;--orange-c:#fef9e7;
+  --texte:#2c2c3e;--border:#dcdce4;--shadow:0 4px 24px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:#f0f0f5;color:var(--texte);min-height:100vh;}
+header{background:linear-gradient(135deg,var(--gris-f),var(--gris-m));color:white;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.3);}
+.hband{background:var(--rouge);height:5px;}
+.hinner{display:flex;align-items:center;gap:16px;padding:12px 24px;}
+.hlogo{width:46px;height:46px;background:var(--rouge);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:white;flex-shrink:0;border:3px solid rgba(255,255,255,0.2);}
+.htxt h1{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.htxt p{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.5px;}
+main{max-width:820px;margin:24px auto;padding:0 14px 60px;}
+.steps{display:flex;background:white;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:22px;}
+.step{flex:1;padding:11px 6px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#999;border-bottom:3px solid transparent;transition:all 0.3s;}
+.step.active{color:var(--rouge);border-bottom-color:var(--rouge);background:var(--rouge-c);}
+.step.done{color:var(--vert);border-bottom-color:var(--vert);}
+.snum{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#ddd;color:#888;font-size:11px;font-weight:700;margin-bottom:3px;}
+.step.active .snum{background:var(--rouge);color:white;}
+.step.done .snum{background:var(--vert);color:white;}
+.slbl{display:block;font-size:10px;}
+.card{background:white;border-radius:14px;box-shadow:var(--shadow);overflow:hidden;}
+.ch{background:linear-gradient(135deg,var(--rouge),var(--rouge-f));color:white;padding:18px 22px;display:flex;align-items:center;gap:12px;}
+.chicon{font-size:26px;}
+.ch h2{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.ch p{font-size:12px;opacity:0.8;margin-top:2px;}
+.cb{padding:22px;}
+.frow{display:flex;gap:14px;margin-bottom:14px;}
+.fg{flex:1;}
+.lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#666;margin-bottom:5px;}
+.req{color:var(--rouge);}
+input,select,textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--texte);background:white;transition:border-color 0.2s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--rouge);box-shadow:0 0 0 3px rgba(192,57,43,0.1);}
+textarea{resize:vertical;min-height:80px;}
+.sec{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--rouge);border-left:4px solid var(--rouge);padding-left:10px;margin:20px 0 12px;}
+.alert{padding:11px 15px;border-radius:8px;font-size:13px;margin-bottom:14px;line-height:1.5;}
+.al-info{background:#eaf4ff;border-left:4px solid #3498db;color:#1a5f8a;}
+.al-warn{background:var(--orange-c);border-left:4px solid #e67e22;color:#8a5000;}
+.al-ok{background:var(--vert-c);border-left:4px solid var(--vert);color:#1a6b3a;}
+.al-err{background:#fde;border-left:4px solid #e74c3c;color:#7b1c1c;}
+.rgrp{display:flex;gap:16px;}
+.rgrp label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--texte);cursor:pointer;font-weight:500;text-transform:none;letter-spacing:0;}
+.rgrp input[type=radio]{width:auto;accent-color:var(--rouge);}
+.rem-box{display:none;margin-top:10px;padding:14px;background:var(--orange-c);border-radius:8px;border:1px solid #f0c060;}
+.rem-box.show{display:block;}
+.eng-box{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:13px;background:#fafafa;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;color:var(--texte);line-height:1.5;margin-bottom:11px;transition:border-color 0.2s;}
+.eng-box input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:var(--rouge);cursor:pointer;}
+.eng-box:hover{border-color:var(--rouge);}
+.sig-wrap{border:2px dashed var(--border);border-radius:10px;overflow:hidden;background:#fafafa;}
+.sig-wrap canvas{display:block;cursor:crosshair;touch-action:none;}
+.sig-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--gris-c);border-top:1px solid var(--border);}
+.sig-hint{font-size:12px;color:#888;}
+.btn-clr{background:none;border:none;cursor:pointer;font-size:12px;color:var(--rouge);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:3px 8px;}
+.sig-st{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.sig-st.empty{background:#fde;color:var(--rouge);}
+.sig-st.signed{background:var(--vert-c);color:var(--vert);}
+.cbadge{display:none;margin-top:8px;padding:8px 12px;border-radius:8px;background:var(--rouge-c);border:1px solid var(--rouge);font-size:12px;color:var(--rouge-f);font-weight:600;line-height:1.7;}
+.cbadge.show{display:block;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;cursor:pointer;font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;transition:all 0.2s;}
+.btn-p{background:var(--rouge);color:white;box-shadow:0 4px 12px rgba(192,57,43,0.3);}
+.btn-p:hover{background:var(--rouge-f);transform:translateY(-1px);}
+.btn-p:disabled{background:#ccc;box-shadow:none;transform:none;cursor:not-allowed;}
+.btn-s{background:var(--gris-c);color:var(--texte);}
+.btn-s:hover{background:var(--border);}
+.btn-ok{background:var(--vert);color:white;box-shadow:0 4px 12px rgba(39,174,96,0.3);}
+.btn-ko{background:#e74c3c;color:white;box-shadow:0 4px 12px rgba(231,76,60,0.3);}
+.btn-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.ri{background:var(--gris-c);border-radius:8px;padding:10px 13px;}
+.ri.full{grid-column:1/-1;}
+.rl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#888;margin-bottom:3px;}
+.rv{font-size:13px;font-weight:600;color:var(--texte);}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.screen{display:none;}
+.screen.active{display:block;}
+.success-wrap{text-align:center;padding:40px 20px;}
+.success-icon{width:80px;height:80px;background:var(--vert-c);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 20px;border:3px solid var(--vert);}
+.success-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;text-transform:uppercase;color:var(--vert);margin-bottom:8px;}
+.success-sub{color:#666;font-size:14px;margin-bottom:28px;line-height:1.6;}
+@media(max-width:580px){
+  .frow{flex-direction:column;}
+  .rgrid{grid-template-columns:1fr;}
+  .ri.full{grid-column:1;}
+  .steps .slbl{display:none;}
+  main{padding:0 8px 40px;}
+  .cb{padding:15px;}
+  .htxt h1{font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hband"></div>
+  <div class="hinner">
+    <div class="hlogo">SDIS</div>
+    <div class="htxt">
+      <h1>SDIS Haute-Corse — Groupement Territorial de Balagne</h1>
+      <p>Autorisation d'utilisation exceptionnelle d'un véhicule de service</p>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="steps">
+    <div class="step active" id="stp1"><div class="snum">1</div><span class="slbl">Formulaire</span></div>
+    <div class="step" id="stp2"><div class="snum">2</div><span class="slbl">Récapitulatif</span></div>
+    <div class="step" id="stp3"><div class="snum">3</div><span class="slbl">Envoyé</span></div>
+  </div>
+
+  <!-- ÉCRAN 1 : FORMULAIRE -->
+  <div class="screen active" id="sc_form">
+    <div class="card">
+      <div class="ch">
+        <div class="chicon">🚒</div>
+        <div><h2>Demande d'autorisation</h2><p>À remplir par l'agent demandeur</p></div>
+      </div>
+      <div class="cb">
+        <div class="alert al-info">ℹ️ Les champs marqués <strong>*</strong> sont obligatoires. La demande sera envoyée automatiquement au chef de centre et son adjoint.</div>
+
+        <div class="sec">👤 Agent demandeur</div>
+        <div class="frow">
+          <div class="fg"><label class="lbl">Nom <span class="req">*</span></label><input type="text" id="nom" placeholder="Nom de famille"></div>
+          <div class="fg"><label class="lbl">Prénom <span class="req">*</span></label><input type="text" id="prenom" placeholder="Prénom"></div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label class="lbl">Grade <span class="req">*</span></label>
+            <select id="grade">
+              <option value="">— Sélectionner —</option>
+              <option>Sapeur</option><option>Caporal</option><option>Caporal-Chef</option>
+              <option>Sergent</option><option>Sergent-Chef</option><option>Adjudant</option>
+              <option>Adjudant-Chef</option><option>Lieutenant</option><option>Capitaine</option>
+              <option>Commandant</option><option>Lieutenant-Colonel</option><option>Colonel</option>
+            </select>
+          </div>
+          <div class="fg"><label class="lbl">E-mail de l'agent <span class="req">*</span></label><input type="email" id="emailAgent" placeholder="prenom.nom@sis2b.corsica"></div>
+        </div>
+
+        <div class="sec">🏠 Centre de secours</div>
+        <div class="fg" style="margin-bottom:14px">
+          <label class="lbl">Centre de secours <span class="req">*</span></label>
+          <select id="centre" onchange="onCentreChange()">
+            <option value="">— Sélectionner votre centre —</option>
+            <option value="Calvi">Centre de secours de Calvi</option>
+            <option value="L'Ile-Rousse">Centre de secours de L'Île-Rousse</option>
+            <option value="Belgodere">Centre de secours de Belgodère</option>
+            <option value="Galeria">Centre de secours de Galéria</option>
+            <option value="Olmi Cappella">Centre de secours d'Olmi Cappella</option>
+            <option value="Groupement Balagne">Groupement Territorial de Balagne</option>
+          </select>
+          <div class="cbadge" id="centreBadge"></div>
+        </div>
+
+        <div class="sec">🚗 Véhicule et transport</div>
+        <div class="alert al-info">ℹ️ Le type de véhicule sera précisé et attribué par le groupement (ou proposé par le chef de centre).</div>
+        <div class="frow">
+          <div class="fg"><label class="lbl">Désignation souhaitée <span class="req">*</span></label><input type="text" id="vehicule" placeholder="Ex: véhicule léger, utilitaire… ou laissez au choix du groupement"></div>
+          <div class="fg" style="max-width:200px"><label class="lbl">Nb personnes à bord <span class="req">*</span></label><input type="number" id="nbP" min="1" max="20" placeholder="Ex: 2"></div>
+        </div>
+
+        <div class="sec">📅 Période d'utilisation</div>
+        <div class="frow">
+          <div class="fg"><label class="lbl">Date de début <span class="req">*</span></label><input type="date" id="dD"></div>
+          <div class="fg"><label class="lbl">Date de fin <span class="req">*</span></label><input type="date" id="dF"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="lbl">Heure départ (GH)</label><input type="time" id="hD"></div>
+          <div class="fg"><label class="lbl">Heure retour (GH)</label><input type="time" id="hF"></div>
+        </div>
+
+        <div class="sec">📋 Motif du déplacement</div>
+        <div class="fg" style="margin-bottom:14px">
+          <label class="lbl">Motif détaillé <span class="req">*</span></label>
+          <textarea id="motif" placeholder="Décrire le motif. Préciser si du matériel doit être transporté (nature, volume, poids estimé). Un justificatif peut être joint par email."></textarea>
+        </div>
+
+        <div class="sec">🏠 Remisage au domicile</div>
+        <div class="alert al-info">ℹ️ Cette autorisation est indépendante de la décision d'attribution du véhicule. Le groupement statuera séparément sur ce point.</div>
+        <div class="fg" style="margin-bottom:14px">
+          <label class="lbl">Demandez-vous à remiser le véhicule à votre domicile ? <span class="req">*</span></label>
+          <div class="rgrp" style="margin-bottom:8px">
+            <label><input type="radio" name="remisage" value="non" onchange="onRemChange()" checked> Non</label>
+            <label><input type="radio" name="remisage" value="oui" onchange="onRemChange()"> Oui — la veille et/ou les soirs pendant la période</label>
+          </div>
+          <div class="rem-box" id="remBox">
+            <div style="font-size:13px;color:#8a5000;margin-bottom:10px;font-weight:600;">Précisez les nuits de remisage souhaitées :</div>
+            <div class="frow">
+              <div class="fg"><label class="lbl">La veille (nuit du)</label><input type="date" id="remDu"></div>
+              <div class="fg"><label class="lbl">Jusqu'au (nuit du)</label><input type="date" id="remAu"></div>
+            </div>
+            <div class="fg">
+              <label class="lbl">Précisions sur le remisage</label>
+              <input type="text" id="remPrec" placeholder="Ex: remisage domicile chaque soir / uniquement la veille…">
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">☑️ Engagements obligatoires</div>
+        <div class="alert al-warn">⚠️ Les deux cases ci-dessous sont <strong>obligatoires</strong>.</div>
+        <label class="eng-box" id="boxP">
+          <input type="checkbox" id="engP">
+          <span>Je m'engage à <strong>ne transporter aucune personne étrangère au service</strong> ou ne bénéficiant pas d'une couverture assurantielle du SDIS 2B. Toute personne non habilitée à bord engage ma responsabilité personnelle en cas d'incident.</span>
+        </label>
+        <label class="eng-box" id="boxC">
+          <input type="checkbox" id="engC">
+          <span>Je m'engage à <strong>respecter le Code de la Route</strong>, à <strong>restituer le véhicule propre</strong> et avec le <strong>plein de carburant effectué</strong>, dans l'état où il m'a été confié, au lieu et à la date convenus.</span>
+        </label>
+
+        <div class="sec">✍️ Signature du demandeur</div>
+        <div class="alert al-warn">✋ Signez avec votre doigt (smartphone) ou la souris.</div>
+        <div class="sig-wrap">
+          <canvas id="sigCanvas" height="140"></canvas>
+          <div class="sig-bar">
+            <span class="sig-hint">Signez ici</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="sig-st empty" id="sigSt">Non signé</span>
+              <button class="btn-clr" onclick="clearSig()">Effacer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-actions">
+          <button class="btn btn-s" onclick="resetForm()">🔄 Réinitialiser</button>
+          <button class="btn btn-p" onclick="valider()">Vérifier → Récapitulatif ➜</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN 2 : RÉCAPITULATIF -->
+  <div class="screen" id="sc_recap">
+    <div class="card">
+      <div class="ch">
+        <div class="chicon">📋</div>
+        <div><h2>Récapitulatif</h2><p>Vérifiez avant d'envoyer</p></div>
+      </div>
+      <div class="cb">
+        <div id="recapContent"></div>
+        <div class="btn-actions">
+          <button class="btn btn-s" onclick="goSc('sc_form');setStep(1)">← Modifier</button>
+          <button class="btn btn-p" id="btnEnvoyer" onclick="envoyer()">📧 Envoyer la demande ➜</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN 3 : ENVOYÉ -->
+  <div class="screen" id="sc_sent">
+    <div class="card">
+      <div class="ch" style="background:linear-gradient(135deg,#27ae60,#1a8a4a)">
+        <div class="chicon">✅</div>
+        <div><h2>Demande envoyée !</h2><p>Email transmis automatiquement</p></div>
+      </div>
+      <div class="cb">
+        <div class="success-wrap">
+          <div class="success-icon">📨</div>
+          <div class="success-title">Demande transmise avec succès</div>
+          <div class="success-sub" id="sentMsg"></div>
+          <div class="alert al-info" style="text-align:left">
+            ℹ️ Le chef de centre et son adjoint ont reçu un email avec les boutons <strong>Avis Favorable</strong> et <strong>Avis Défavorable</strong>.<br><br>
+            En cas d'avis favorable, votre demande sera automatiquement transmise au Groupement Territorial.<br>
+            En cas d'avis défavorable, vous serez notifié directement par email.
+          </div>
+          <button class="btn btn-s" style="margin-top:16px" onclick="nouvDem()">➕ Nouvelle demande</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ═══════════════════════════════
+// EMAILJS INIT
+// ═══════════════════════════════
+emailjs.init('JYjSFatNCd-Q1-Mb2');
+var EJ_SERVICE  = 'service_w96c197';
+var EJ_TEMPLATE = 'template_bfmpuii';
+
+// ═══════════════════════════════
+// CONFIG CENTRES
+// ═══════════════════════════════
+var CENTRES = {
+  'Calvi':              { chef:'Barthelemy.guerrini@sis2b.corsica',  adj:'anthony.leoni@sis2b.corsica' },
+  "L'Ile-Rousse":       { chef:'Fabien.massoni@sis2b.corsica',       adj:'Damien.volpei@sis2b.corsica' },
+  'Belgodere':          { chef:'chef.centre.belgodere@sis2b.corsica',adj:'adjoint.centre.belgodere@sis2b.corsica' },
+  'Galeria':            { chef:'tcpeos@gmail.com',                   adj:'tcp.sdis2b@gmail.com' },
+  'Olmi Cappella':      { chef:'chef.centre.olmicappella@sis2b.corsica',adj:'adjoint.centre.olmicappella@sis2b.corsica' },
+  'Groupement Balagne': { chef:'Pascal.colombani@sis2b.corsica',     adj:'testtesttest@gmail.com' }
+};
+var GRP = {
+  chef:'Pascal.colombani@sis2b.corsica',
+  ref:'testtesttest@gmail.com',
+  sec:'secretariat.2222222@gmail.com'
+};
+
+// URL de base du formulaire (à mettre à jour après déploiement GitHub Pages)
+var BASE_URL = 'https://pasqua20220.github.io/Pascal-COLOMBANI/';
+
+// ═══════════════════════════════
+// ÉTAT
+// ═══════════════════════════════
+var FD={}, sigURL=null, reqId='', hasSig=false, drawing=false;
+
+// ═══════════════════════════════
+// SIGNATURE
+// ═══════════════════════════════
+var canvas=document.getElementById('sigCanvas');
+var ctx=canvas.getContext('2d');
+function resizeCv(){
+  var w=canvas.parentElement.clientWidth;
+  var r=window.devicePixelRatio||1;
+  canvas.width=w*r; canvas.height=140*r;
+  canvas.style.width=w+'px'; canvas.style.height='140px';
+  ctx.scale(r,r);
+}
+window.addEventListener('resize',resizeCv); resizeCv();
+function getXY(e){
+  var rect=canvas.getBoundingClientRect();
+  if(e.touches) return{x:e.touches[0].clientX-rect.left,y:e.touches[0].clientY-rect.top};
+  return{x:e.clientX-rect.left,y:e.clientY-rect.top};
+}
+function drawLine(p){
+  ctx.lineTo(p.x,p.y);ctx.strokeStyle='#1a1a2e';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();
+  hasSig=true;
+  document.getElementById('sigSt').textContent='Signé ✓';
+  document.getElementById('sigSt').className='sig-st signed';
+}
+canvas.addEventListener('mousedown',function(e){drawing=true;ctx.beginPath();var p=getXY(e);ctx.moveTo(p.x,p.y);});
+canvas.addEventListener('mousemove',function(e){if(drawing)drawLine(getXY(e));});
+canvas.addEventListener('mouseup',function(){drawing=false;});
+canvas.addEventListener('mouseleave',function(){drawing=false;});
+canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;ctx.beginPath();var p=getXY(e);ctx.moveTo(p.x,p.y);},{passive:false});
+canvas.addEventListener('touchmove',function(e){e.preventDefault();if(drawing)drawLine(getXY(e));},{passive:false});
+canvas.addEventListener('touchend',function(){drawing=false;});
+function clearSig(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hasSig=false;sigURL=null;
+  document.getElementById('sigSt').textContent='Non signé';
+  document.getElementById('sigSt').className='sig-st empty';
+}
+
+// ═══════════════════════════════
+// UI
+// ═══════════════════════════════
+function onCentreChange(){
+  var v=document.getElementById('centre').value;
+  var b=document.getElementById('centreBadge');
+  if(v&&CENTRES[v]){
+    b.className='cbadge show';
+    b.innerHTML='📧 Chef : '+CENTRES[v].chef+'<br>Adjoint : '+CENTRES[v].adj;
+  } else { b.className='cbadge'; }
+}
+function onRemChange(){
+  var v=document.querySelector('input[name="remisage"]:checked').value;
+  document.getElementById('remBox').className=v==='oui'?'rem-box show':'rem-box';
+}
+function goSc(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setStep(n){
+  for(var i=1;i<=3;i++){
+    var el=document.getElementById('stp'+i);
+    el.className='step'+(i<n?' done':i===n?' active':'');
+  }
+}
+function fmt(s){
+  if(!s) return '—';
+  var p=s.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+}
+
+// ═══════════════════════════════
+// VALIDATION
+// ═══════════════════════════════
+function valider(){
+  var champs=['nom','prenom','grade','emailAgent','centre','vehicule','nbP','dD','dF','motif'];
+  var ok=true;
+  champs.forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el.value.trim()){el.style.borderColor='var(--rouge)';ok=false;}
+    else el.style.borderColor='';
+  });
+  if(!ok){alert('⚠️ Veuillez remplir tous les champs obligatoires.');return;}
+  var e1=document.getElementById('engP').checked;
+  var e2=document.getElementById('engC').checked;
+  document.getElementById('boxP').style.borderColor=e1?'':'var(--rouge)';
+  document.getElementById('boxC').style.borderColor=e2?'':'var(--rouge)';
+  if(!e1||!e2){alert('⚠️ Vous devez cocher les deux cases d\'engagement.');return;}
+  if(!hasSig){alert('⚠️ Merci de signer la demande.');return;}
+  sigURL=canvas.toDataURL('image/png');
+  reqId='REQ-'+Date.now().toString(36).toUpperCase();
+  var remisage=document.querySelector('input[name="remisage"]:checked').value;
+  FD={
+    nom:document.getElementById('nom').value.trim(),
+    prenom:document.getElementById('prenom').value.trim(),
+    grade:document.getElementById('grade').value,
+    emailAgent:document.getElementById('emailAgent').value.trim(),
+    centre:document.getElementById('centre').value,
+    vehicule:document.getElementById('vehicule').value.trim(),
+    nbP:document.getElementById('nbP').value.trim(),
+    dD:document.getElementById('dD').value,
+    dF:document.getElementById('dF').value,
+    hD:document.getElementById('hD').value,
+    hF:document.getElementById('hF').value,
+    motif:document.getElementById('motif').value.trim(),
+    remisage:remisage,
+    remDu:document.getElementById('remDu').value,
+    remAu:document.getElementById('remAu').value,
+    remPrec:document.getElementById('remPrec').value.trim()
+  };
+  buildRecap();
+  goSc('sc_recap');
+  setStep(2);
+}
+
+function buildRecap(){
+  var c=CENTRES[FD.centre];
+  var remTxt=FD.remisage==='oui'?'✅ Oui — '+(FD.remDu?'du '+fmt(FD.remDu):'')+' au '+fmt(FD.remAu)+(FD.remPrec?' ('+FD.remPrec+')':''):'❌ Non';
+  document.getElementById('recapContent').innerHTML=
+    '<div class="rgrid">'+
+    '<div class="ri"><div class="rl">Agent</div><div class="rv">'+FD.grade+' '+FD.prenom+' '+FD.nom+'</div></div>'+
+    '<div class="ri"><div class="rl">E-mail</div><div class="rv">'+FD.emailAgent+'</div></div>'+
+    '<div class="ri"><div class="rl">Centre</div><div class="rv">'+FD.centre+'</div></div>'+
+    '<div class="ri"><div class="rl">Véhicule souhaité</div><div class="rv">'+FD.vehicule+'</div></div>'+
+    '<div class="ri"><div class="rl">Nb personnes</div><div class="rv">👥 '+FD.nbP+'</div></div>'+
+    '<div class="ri"><div class="rl">Type véhicule</div><div class="rv" style="color:#aaa;font-style:italic">À attribuer par le groupement</div></div>'+
+    '<div class="ri"><div class="rl">Période</div><div class="rv">'+fmt(FD.dD)+' → '+fmt(FD.dF)+'</div></div>'+
+    '<div class="ri"><div class="rl">Horaires GH</div><div class="rv">'+(FD.hD||'—')+' → '+(FD.hF||'—')+'</div></div>'+
+    '<div class="ri full"><div class="rl">Motif / Matériel</div><div class="rv">'+FD.motif+'</div></div>'+
+    '<div class="ri full"><div class="rl">Remisage domicile demandé</div><div class="rv">'+remTxt+'</div></div>'+
+    '<div class="ri full" style="background:var(--vert-c);border:1px solid var(--vert)">'+
+      '<div class="rl" style="color:var(--vert)">☑️ Engagements signés</div>'+
+      '<div class="rv" style="font-size:12px;color:#2c6e49;line-height:1.7">'+
+        '✅ Ne transportera aucune personne étrangère au service<br>'+
+        '✅ Respectera le Code de la Route — restituera le véhicule propre avec le plein'+
+      '</div>'+
+    '</div>'+
+    '<div class="ri"><div class="rl">N° demande</div><div class="rv" style="font-family:monospace;color:var(--rouge)">'+reqId+'</div></div>'+
+    '<div class="ri"><div class="rl">Destinataires</div><div class="rv" style="font-size:12px">'+CENTRES[FD.centre].chef+' | '+CENTRES[FD.centre].adj+'</div></div>'+
+    '<div class="ri full"><div class="rl">Signature</div><div><img src="'+sigURL+'" style="max-width:200px;border:1px solid var(--border);border-radius:6px;margin-top:6px"></div></div>'+
+    '</div>';
+}
+
+// ═══════════════════════════════
+// ENVOI EMAIL VIA EMAILJS
+// ═══════════════════════════════
+function envoyer(){
+  var btn=document.getElementById('btnEnvoyer');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Envoi en cours…';
+
+  var c=CENTRES[FD.centre];
+  var remTxt=FD.remisage==='oui'?'OUI — du '+fmt(FD.remDu)+' au '+fmt(FD.remAu)+(FD.remPrec?' ('+FD.remPrec+')':''):'NON';
+
+  // Liens de réponse encodés dans l'URL
+  var dataEnc=encodeURIComponent(JSON.stringify(FD));
+  var lienFav=BASE_URL+'?action=fav&req='+reqId+'&data='+dataEnc;
+  var lienDef=BASE_URL+'?action=def&req='+reqId+'&data='+dataEnc;
+
+  var params={
+    to_email: c.chef+','+c.adj,
+    reply_to: FD.emailAgent,
+    subject: '[SDIS 2B] Demande véhicule — '+FD.grade+' '+FD.nom+' — '+reqId,
+    message_html:
+      '<div style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;">'+
+      '<div style="background:#1a1a2e;padding:16px 24px;border-radius:8px 8px 0 0;">'+
+        '<h2 style="color:white;margin:0;font-size:18px;text-transform:uppercase;letter-spacing:1px;">SDIS 2B — Groupement Territorial de Balagne</h2>'+
+        '<p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:12px;">Autorisation d\'utilisation exceptionnelle de véhicule</p>'+
+      '</div>'+
+      '<div style="background:#c0392b;padding:10px 24px;">'+
+        '<p style="color:white;margin:0;font-size:13px;font-weight:bold;">Demande n° '+reqId+' — À traiter</p>'+
+      '</div>'+
+      '<div style="background:#f8f9fa;padding:20px 24px;border:1px solid #dee2e6;">'+
+        '<p style="font-size:14px;color:#333;">Bonjour,</p>'+
+        '<p style="font-size:14px;color:#333;"><strong>'+FD.grade+' '+FD.prenom+' '+FD.nom+'</strong> soumet une demande d\'utilisation exceptionnelle de véhicule de service.</p>'+
+        '<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;">'+
+          '<tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;width:40%;">Véhicule souhaité</td><td style="padding:8px 12px;">'+FD.vehicule+'</td></tr>'+
+          '<tr><td style="padding:8px 12px;font-weight:bold;">Nb personnes à bord</td><td style="padding:8px 12px;">'+FD.nbP+'</td></tr>'+
+          '<tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;">Période</td><td style="padding:8px 12px;">'+fmt(FD.dD)+' au '+fmt(FD.dF)+(FD.hD?' ('+FD.hD+' → '+FD.hF+')':'')+'</td></tr>'+
+          '<tr><td style="padding:8px 12px;font-weight:bold;">Motif / Matériel</td><td style="padding:8px 12px;">'+FD.motif+'</td></tr>'+
+          '<tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;">Remisage domicile demandé</td><td style="padding:8px 12px;">'+remTxt+'</td></tr>'+
+          '<tr><td style="padding:8px 12px;font-weight:bold;">E-mail agent</td><td style="padding:8px 12px;">'+FD.emailAgent+'</td></tr>'+
+        '</table>'+
+        '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:12px 16px;margin:16px 0;">'+
+          '<p style="margin:0;font-size:13px;color:#856404;font-weight:bold;">⚠️ Engagements de l\'agent :</p>'+
+          '<p style="margin:6px 0 0;font-size:12px;color:#856404;">✅ Ne transportera aucune personne non couverte par les assurances SDIS<br>✅ Respectera le Code de la Route — restituera le véhicule propre avec le plein</p>'+
+        '</div>'+
+      '</div>'+
+      '<div style="background:#fff;padding:20px 24px;border:1px solid #dee2e6;border-top:none;">'+
+        '<p style="font-size:14px;color:#333;font-weight:bold;margin-bottom:16px;">Parties à renseigner par le chef de centre / adjoint :</p>'+
+        '<table style="width:100%;border-collapse:collapse;margin:0 0 16px;font-size:13px;border:1px solid #dee2e6;">'+
+          '<tr style="background:#f8f9fa;"><td style="padding:10px 12px;font-weight:bold;border:1px solid #dee2e6;">🚗 Type de véhicule attribué</td><td style="padding:10px 12px;border:1px solid #dee2e6;color:#888;font-style:italic;">À préciser dans votre réponse</td></tr>'+
+          '<tr><td style="padding:10px 12px;font-weight:bold;border:1px solid #dee2e6;">📍 Lieu de prise en compte</td><td style="padding:10px 12px;border:1px solid #dee2e6;color:#888;font-style:italic;">À préciser dans votre réponse</td></tr>'+
+          '<tr style="background:#f8f9fa;"><td style="padding:10px 12px;font-weight:bold;border:1px solid #dee2e6;">🏁 Lieu de restitution</td><td style="padding:10px 12px;border:1px solid #dee2e6;color:#888;font-style:italic;">À préciser dans votre réponse</td></tr>'+
+          '<tr><td style="padding:10px 12px;font-weight:bold;border:1px solid #dee2e6;">🏠 Remisage domicile</td><td style="padding:10px 12px;border:1px solid #dee2e6;color:#888;font-style:italic;">Accordé / Refusé (à préciser)</td></tr>'+
+          '<tr style="background:#f8f9fa;"><td style="padding:10px 12px;font-weight:bold;border:1px solid #dee2e6;">💬 Observations</td><td style="padding:10px 12px;border:1px solid #dee2e6;color:#888;font-style:italic;">Remarques éventuelles</td></tr>'+
+        '</table>'+
+        '<p style="font-size:14px;color:#333;font-weight:bold;margin-bottom:12px;">Rendez votre avis en cliquant sur l\'un des boutons :</p>'+
+        '<div style="display:flex;gap:12px;flex-wrap:wrap;">'+
+          '<a href="'+lienFav+'" style="background:#27ae60;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">✅ Avis FAVORABLE</a>'+
+          '<a href="'+lienDef+'" style="background:#e74c3c;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">❌ Avis DÉFAVORABLE</a>'+
+        '</div>'+
+        '<p style="font-size:11px;color:#999;margin-top:20px;">En cliquant sur un bouton, votre avis sera enregistré et transmis automatiquement aux destinataires concernés.</p>'+
+      '</div>'+
+      '<div style="background:#1a1a2e;padding:12px 24px;border-radius:0 0 8px 8px;text-align:center;">'+
+        '<p style="color:rgba(255,255,255,0.5);font-size:11px;margin:0;">SDIS de Haute-Corse — Message automatique — Réf. '+reqId+'</p>'+
+      '</div>'+
+      '</div>'
+  };
+
+  emailjs.send(EJ_SERVICE, EJ_TEMPLATE, params)
+    .then(function(){
+      var c2=CENTRES[FD.centre];
+      document.getElementById('sentMsg').innerHTML=
+        'Votre demande <strong>'+reqId+'</strong> a été envoyée à :<br>'+
+        '📧 '+c2.chef+'<br>📧 '+c2.adj+'<br><br>'+
+        'Vous recevrez une notification dès que le chef de centre aura rendu son avis.';
+      goSc('sc_sent');
+      setStep(3);
+    })
+    .catch(function(err){
+      console.error('EmailJS error:', err);
+      btn.disabled=false;
+      btn.innerHTML='📧 Envoyer la demande ➜';
+      alert('❌ Erreur d\'envoi : '+JSON.stringify(err)+'\n\nVérifiez votre connexion et réessayez.');
+    });
+}
+
+// ═══════════════════════════════
+// GESTION DES CLICS SUR LES BOUTONS DANS LES EMAILS
+// ═══════════════════════════════
+function handleUrlAction(){
+  var params=new URLSearchParams(window.location.search);
+  var action=params.get('action');
+  var req=params.get('req');
+  var dataStr=params.get('data');
+  if(!action||!req||!dataStr) return;
+
+  try{
+    var fd=JSON.parse(decodeURIComponent(dataStr));
+    var c=CENTRES[fd.centre];
+    var remTxt=fd.remisage==='oui'?'OUI — du '+fmt(fd.remDu)+' au '+fmt(fd.remAu)+(fd.remPrec?' ('+fd.remPrec+')':''):'NON';
+
+    if(action==='fav'){
+      // Email au groupement
+      var lienAcc=BASE_URL+'?action=acc&req='+req+'&data='+params.get('data');
+      var lienRef=BASE_URL+'?action=ref&req='+req+'&data='+params.get('data');
+      var pGrp={
+        to_email: GRP.chef+','+GRP.ref+','+GRP.sec,
+        reply_to: c.chef,
+        subject: '[SDIS 2B] Avis FAVORABLE chef centre — Décision requise — '+req,
+        message_html:
+          '<div style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;">'+
+          '<div style="background:#1a1a2e;padding:16px 24px;border-radius:8px 8px 0 0;">'+
+            '<h2 style="color:white;margin:0;font-size:18px;text-transform:uppercase;letter-spacing:1px;">SDIS 2B — Groupement Territorial de Balagne</h2>'+
+          '</div>'+
+          '<div style="background:#27ae60;padding:10px 24px;">'+
+            '<p style="color:white;margin:0;font-size:13px;font-weight:bold;">✅ Avis FAVORABLE du chef du centre de '+fd.centre+' — Décision finale requise</p>'+
+          '</div>'+
+          '<div style="background:#f8f9fa;padding:20px 24px;border:1px solid #dee2e6;">'+
+            '<p style="font-size:14px;color:#333;">Bonjour,</p>'+
+            '<p style="font-size:14px;color:#333;">Le chef du centre de <strong>'+fd.centre+'</strong> a rendu un <strong style="color:#27ae60">avis FAVORABLE</strong> pour la demande de <strong>'+fd.grade+' '+fd.prenom+' '+fd.nom+'</strong>.</p>'+
+            '<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;">'+
+              '<tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;width:40%;">Véhicule souhaité</td><td style="padding:8px 12px;">'+fd.vehicule+'</td></tr>'+
+              '<tr><td style="padding:8px 12px;font-weight:bold;">Nb personnes</td><td style="padding:8px 12px;">'+fd.nbP+'</td></tr>'+
+              '<tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;">Période</td><td style="padding:8px 12px;">'+fmt(fd.dD)+' au '+fmt(fd.dF)+'</td></tr>'+
+              '<tr><td style="padding:8px 12px;font-weight:bold;">Motif</td><td style="padding:8px 12px;">'+fd.motif+'</td></tr>'+
+              '<tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;">Remisage domicile</td><td style="padding:8px 12px;">'+remTxt+'</td></tr>'+
+            '</table>'+
+            '<div style="background:#fff;padding:16px;border:1px solid #dee2e6;border-radius:6px;margin:16px 0;">'+
+              '<p style="font-size:14px;color:#333;font-weight:bold;margin:0 0 12px;">Parties à renseigner par le Groupement :</p>'+
+              '<table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #dee2e6;">'+
+                '<tr style="background:#f8f9fa;"><td style="padding:10px;font-weight:bold;border:1px solid #dee2e6;">🚗 Type de véhicule attribué (obligatoire)</td><td style="padding:10px;border:1px solid #dee2e6;color:#888;font-style:italic;">À préciser</td></tr>'+
+                '<tr><td style="padding:10px;font-weight:bold;border:1px solid #dee2e6;">📍 Lieu de prise en compte</td><td style="padding:10px;border:1px solid #dee2e6;color:#888;font-style:italic;">À préciser</td></tr>'+
+                '<tr style="background:#f8f9fa;"><td style="padding:10px;font-weight:bold;border:1px solid #dee2e6;">🏁 Lieu de restitution</td><td style="padding:10px;border:1px solid #dee2e6;color:#888;font-style:italic;">À préciser</td></tr>'+
+                '<tr><td style="padding:10px;font-weight:bold;border:1px solid #dee2e6;">🏠 Remisage domicile</td><td style="padding:10px;border:1px solid #dee2e6;color:#888;font-style:italic;">Accordé / Refusé</td></tr>'+
+                '<tr style="background:#f8f9fa;"><td style="padding:10px;font-weight:bold;border:1px solid #dee2e6;">💬 Observations</td><td style="padding:10px;border:1px solid #dee2e6;color:#888;font-style:italic;">Remarques éventuelles</td></tr>'+
+              '</table>'+
+            '</div>'+
+            '<p style="font-size:14px;font-weight:bold;margin-bottom:12px;">Rendez votre décision finale :</p>'+
+            '<div style="display:flex;gap:12px;flex-wrap:wrap;">'+
+              '<a href="'+lienAcc+'" style="background:#27ae60;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">✅ ACCORDÉ</a>'+
+              '<a href="'+lienRef+'" style="background:#e74c3c;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">❌ REFUSÉ</a>'+
+            '</div>'+
+          '</div>'+
+          '<div style="background:#1a1a2e;padding:12px 24px;border-radius:0 0 8px 8px;text-align:center;">'+
+            '<p style="color:rgba(255,255,255,0.5);font-size:11px;margin:0;">SDIS de Haute-Corse — Message automatique — Réf. '+req+'</p>'+
+          '</div></div>'
+      };
+      emailjs.send(EJ_SERVICE,EJ_TEMPLATE,pGrp);
+
+      // Email confirmation au chef de centre
+      emailjs.send(EJ_SERVICE,EJ_TEMPLATE,{
+        to_email:c.chef+','+c.adj,
+        reply_to:GRP.chef,
+        subject:'[SDIS 2B] Confirmation avis favorable enregistré — '+req,
+        message_html:'<div style="font-family:Arial,sans-serif;padding:20px;"><h3 style="color:#27ae60;">✅ Votre avis FAVORABLE a été enregistré</h3><p>La demande <strong>'+req+'</strong> de '+fd.grade+' '+fd.prenom+' '+fd.nom+' a été transmise au Groupement Territorial pour décision finale.</p><p style="color:#999;font-size:12px;">SDIS 2B — Message automatique</p></div>'
+      });
+      showActionPage('fav', req, fd);
+
+    } else if(action==='def'){
+      // Email à l'agent + info groupement
+      emailjs.send(EJ_SERVICE,EJ_TEMPLATE,{
+        to_email:fd.emailAgent+','+GRP.chef+','+GRP.sec,
+        reply_to:c.chef,
+        subject:'[SDIS 2B] Avis DÉFAVORABLE — Demande '+req,
+        message_html:'<div style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;"><div style="background:#c0392b;padding:16px 24px;border-radius:8px 8px 0 0;"><h2 style="color:white;margin:0;font-size:18px;">SDIS 2B — Avis DÉFAVORABLE</h2></div><div style="padding:20px 24px;border:1px solid #dee2e6;"><p>Bonjour '+fd.grade+' '+fd.prenom+' '+fd.nom+',</p><p>Votre demande d\'utilisation exceptionnelle de véhicule (réf. <strong>'+req+'</strong>) a reçu un <strong style="color:#e74c3c">avis DÉFAVORABLE</strong> du chef du centre de <strong>'+fd.centre+'</strong>.</p><p>La demande est archivée. Pour tout renseignement, contactez votre chef de centre.</p><p style="color:#999;font-size:12px;">SDIS 2B — Message automatique — Réf. '+req+'</p></div></div>'
+      });
+      showActionPage('def', req, fd);
+
+    } else if(action==='acc'){
+      // Email final accordé → agent + chef centre + adjoint
+      emailjs.send(EJ_SERVICE,EJ_TEMPLATE,{
+        to_email:fd.emailAgent+','+c.chef+','+c.adj+','+GRP.sec,
+        reply_to:GRP.chef,
+        subject:'[SDIS 2B] ✅ Demande ACCORDÉE — '+req,
+        message_html:'<div style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;"><div style="background:#27ae60;padding:16px 24px;border-radius:8px 8px 0 0;"><h2 style="color:white;margin:0;font-size:18px;">SDIS 2B — Demande ACCORDÉE</h2></div><div style="padding:20px 24px;border:1px solid #dee2e6;"><p>Bonjour '+fd.grade+' '+fd.prenom+' '+fd.nom+',</p><p>Votre demande d\'utilisation exceptionnelle de véhicule (réf. <strong>'+req+'</strong>) a été <strong style="color:#27ae60">ACCORDÉE</strong> par le Chef de Groupement Territorial de Balagne.</p><table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;"><tr style="background:#e9ecef;"><td style="padding:8px 12px;font-weight:bold;">Période</td><td style="padding:8px 12px;">'+fmt(fd.dD)+' au '+fmt(fd.dF)+'</td></tr><tr><td style="padding:8px 12px;font-weight:bold;">Remisage domicile</td><td style="padding:8px 12px;">'+remTxt+'</td></tr></table><p>Vous pouvez procéder à l\'utilisation du véhicule conformément aux conditions autorisées.</p><p style="color:#999;font-size:12px;">SDIS 2B — Décision définitive — Réf. '+req+'</p></div></div>'
+      });
+      showActionPage('acc', req, fd);
+
+    } else if(action==='ref'){
+      // Email final refusé → agent + chef centre + adjoint
+      emailjs.send(EJ_SERVICE,EJ_TEMPLATE,{
+        to_email:fd.emailAgent+','+c.chef+','+c.adj+','+GRP.sec,
+        reply_to:GRP.chef,
+        subject:'[SDIS 2B] ❌ Demande REFUSÉE — '+req,
+        message_html:'<div style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;"><div style="background:#c0392b;padding:16px 24px;border-radius:8px 8px 0 0;"><h2 style="color:white;margin:0;font-size:18px;">SDIS 2B — Demande REFUSÉE</h2></div><div style="padding:20px 24px;border:1px solid #dee2e6;"><p>Bonjour '+fd.grade+' '+fd.prenom+' '+fd.nom+',</p><p>Votre demande d\'utilisation exceptionnelle de véhicule (réf. <strong>'+req+'</strong>) a été <strong style="color:#e74c3c">REFUSÉE</strong> par le Chef de Groupement Territorial de Balagne.</p><p>La demande ne peut pas être satisfaite. Pour tout renseignement, contactez le Groupement.</p><p style="color:#999;font-size:12px;">SDIS 2B — Décision définitive — Réf. '+req+'</p></div></div>'
+      });
+      showActionPage('ref', req, fd);
+    }
+  } catch(e){ console.error('Erreur URL action:',e); }
+}
+
+function showActionPage(action, req, fd){
+  document.querySelector('main').innerHTML=
+    '<div class="card" style="margin-top:24px;">'+
+    '<div class="ch" style="background:'+
+      (action==='fav'||action==='acc'?'linear-gradient(135deg,#27ae60,#1a8a4a)':
+       action==='def'||action==='ref'?'linear-gradient(135deg,#c0392b,#96281b)':'linear-gradient(135deg,#1a1a2e,#2d2d44)')+
+    '"><div class="chicon">'+(action==='fav'||action==='acc'?'✅':'❌')+'</div>'+
+    '<div><h2>'+
+      (action==='fav'?'Avis favorable enregistré':
+       action==='def'?'Avis défavorable enregistré':
+       action==='acc'?'Demande accordée':
+       'Demande refusée')+
+    '</h2><p>Réf. '+req+'</p></div></div>'+
+    '<div class="cb" style="text-align:center;padding:40px 24px;">'+
+    '<div style="font-size:60px;margin-bottom:20px;">'+(action==='fav'||action==='acc'?'✅':'❌')+'</div>'+
+    '<p style="font-size:16px;font-weight:600;margin-bottom:12px;color:var(--texte)">'+
+      (action==='fav'?'Votre avis FAVORABLE a été enregistré.<br>La demande est transmise au Groupement Territorial.':
+       action==='def'?'Votre avis DÉFAVORABLE a été enregistré.<br>L\'agent et le groupement ont été notifiés.':
+       action==='acc'?'La demande est ACCORDÉE.<br>L\'agent, le chef de centre et son adjoint ont été notifiés.':
+       'La demande est REFUSÉE.<br>L\'agent, le chef de centre et son adjoint ont été notifiés.')+
+    '</p>'+
+    '<p style="font-size:13px;color:#888;">Vous pouvez fermer cette page.</p>'+
+    '</div></div>';
+}
+
+// ═══════════════════════════════
+// RESET
+// ═══════════════════════════════
+function resetForm(){
+  if(!confirm('Réinitialiser le formulaire ?')) return;
+  document.querySelectorAll('#sc_form input:not([type=radio]):not([type=checkbox])').forEach(function(i){i.value='';i.style.borderColor='';});
+  document.querySelectorAll('#sc_form select').forEach(function(s){s.value='';});
+  document.querySelectorAll('#sc_form textarea').forEach(function(t){t.value='';});
+  document.querySelector('input[name="remisage"][value="non"]').checked=true;
+  document.getElementById('engP').checked=false;
+  document.getElementById('engC').checked=false;
+  document.getElementById('boxP').style.borderColor='';
+  document.getElementById('boxC').style.borderColor='';
+  document.getElementById('centreBadge').className='cbadge';
+  onRemChange();
+  clearSig();
+}
+function nouvDem(){
+  resetForm();
+  goSc('sc_form');
+  setStep(1);
+}
+
+// Démarrage
+window.addEventListener('load', handleUrlAction);
+</script>
+</body>
+</html>
