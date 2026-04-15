@@ -1,0 +1,402 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  EXPLOITANT
+  TECHNICIEN
+  ASSUREUR
+  INSTITUTION
+  ADMIN
+}
+
+enum ERPCategory {
+  CAT1
+  CAT2
+  CAT3
+  CAT4
+  CAT5
+}
+
+enum ERPType {
+  J
+  L
+  M
+  N
+  O
+  P
+  R
+  S
+  T
+  U
+  V
+  W
+  X
+  Y
+  PA
+  CTS
+  SG
+  PS
+  OA
+  GA
+  EF
+  REF
+}
+
+enum InspectionPeriodicity {
+  ANNUAL
+  BIANNUAL
+  THREE_YEARS
+  FIVE_YEARS
+  ON_DEMAND
+}
+
+enum InspectionStatus {
+  CONFORME
+  NON_CONFORME
+  RESERVE
+  EN_COURS
+  A_PLANIFIER
+  EN_RETARD
+}
+
+enum PrescriptionStatus {
+  OUVERTE
+  EN_COURS
+  LEVEE
+  REJETEE
+}
+
+enum InstitutionType {
+  SDIS
+  PREFECTURE
+  CSA_SECRETARIAT
+  MAIRIE
+  DDT
+  ARS
+}
+
+enum SpecialReportType {
+  RVRAT
+  RVRE
+  ATEX
+  AMIANTE
+  OTHER
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  exploitantProfile  ExploitantProfile?
+  technicienProfile  TechnicienProfile?
+  assureurProfile    AssureurProfile?
+  institutionProfile InstitutionProfile?
+
+  inspectionsPerformed Inspection[]          @relation("TechnicienInspections")
+  prescriptionLiftings PrescriptionLifting[]
+  auditLogs            AuditLog[]
+  sessions             Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model ExploitantProfile {
+  id      String @id @default(cuid())
+  userId  String @unique
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  siret   String?
+  company String?
+  address String?
+  erps    ERP[]
+}
+
+model TechnicienProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agrement    String?
+  organisme   String?
+  specialites String? // JSON array of theme codes
+  signatureUrl String?
+  tampUrl     String?
+}
+
+model AssureurProfile {
+  id        String              @id @default(cuid())
+  userId    String              @unique
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  compagnie String
+  contrats  InsuranceContract[]
+}
+
+model InstitutionProfile {
+  id              String                @id @default(cuid())
+  userId          String                @unique
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institutionType InstitutionType
+  departement     String?
+  commune         String?
+  accessibleERPs  ERPInstitutionAccess[]
+}
+
+// ─── ERP ──────────────────────────────────────────────────────────────────────
+
+model ERP {
+  id           String      @id @default(cuid())
+  nom          String
+  erpType      ERPType
+  category     ERPCategory
+  adresse      String
+  codePostal   String
+  ville        String
+  departement  String
+  effectifMax  Int
+  activite     String?
+  numeroSiret  String?
+  numeroERP    String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  exploitantId String
+  exploitant   ExploitantProfile @relation(fields: [exploitantId], references: [id])
+
+  inspections        Inspection[]
+  prescriptions      CommissionPrescription[]
+  specialReports     SpecialReport[]
+  institutionAccess  ERPInstitutionAccess[]
+  insuranceContracts InsuranceContract[]
+  commissionVisits   CommissionVisit[]
+}
+
+model ERPInstitutionAccess {
+  id            String             @id @default(cuid())
+  erpId         String
+  erp           ERP                @relation(fields: [erpId], references: [id], onDelete: Cascade)
+  institutionId String
+  institution   InstitutionProfile @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  grantedAt     DateTime           @default(now())
+
+  @@unique([erpId, institutionId])
+}
+
+model InsuranceContract {
+  id            String          @id @default(cuid())
+  erpId         String
+  erp           ERP             @relation(fields: [erpId], references: [id], onDelete: Cascade)
+  assureurId    String
+  assureur      AssureurProfile @relation(fields: [assureurId], references: [id], onDelete: Cascade)
+  numeroContrat String?
+  dateDebut     DateTime
+  dateFin       DateTime?
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+
+  @@unique([erpId, assureurId])
+}
+
+// ─── Inspection Themes & References ──────────────────────────────────────────
+
+model InspectionTheme {
+  id              String                @id @default(cuid())
+  code            String                @unique
+  libelle         String
+  description     String?
+  periodicity     InspectionPeriodicity
+  applicableTypes String // JSON array
+  applicableCats  String // JSON array
+  isActive        Boolean               @default(true)
+
+  references  RegulatoryReference[]
+  inspections Inspection[]
+}
+
+model RegulatoryReference {
+  id          String          @id @default(cuid())
+  themeId     String
+  theme       InspectionTheme @relation(fields: [themeId], references: [id])
+  code        String
+  article     String
+  titre       String
+  description String?
+  texteRegl   String?
+  url         String?
+
+  inspections Inspection[] @relation("InspectionRefs")
+}
+
+// ─── Inspections ──────────────────────────────────────────────────────────────
+
+model Inspection {
+  id            String          @id @default(cuid())
+  erpId         String
+  erp           ERP             @relation(fields: [erpId], references: [id], onDelete: Cascade)
+  themeId       String
+  theme         InspectionTheme @relation(fields: [themeId], references: [id])
+  technicienId  String?
+  technicien    User?           @relation("TechnicienInspections", fields: [technicienId], references: [id])
+
+  dateVisite    DateTime
+  dateProchaine DateTime?
+  dateLimite    DateTime?
+  status        InspectionStatus
+
+  missionObjet    String?
+  observations    String?
+  conclusion      String?
+  recommandations String?
+
+  conformItems    String? // JSON
+  nonConformItems String? // JSON
+  reserveItems    String? // JSON
+
+  signatureUrl String?
+  tampUrl      String?
+  signedAt     DateTime?
+  signedBy     String?
+
+  reportPdfUrl String?
+  attachments  InspectionAttachment[]
+
+  references RegulatoryReference[] @relation("InspectionRefs")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prescriptionLiftings PrescriptionLifting[]
+}
+
+model InspectionAttachment {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  filename     String
+  url          String
+  mimeType     String
+  uploadedAt   DateTime   @default(now())
+}
+
+// ─── Commission de Sécurité ───────────────────────────────────────────────────
+
+model CommissionVisit {
+  id          String   @id @default(cuid())
+  erpId       String
+  erp         ERP      @relation(fields: [erpId], references: [id], onDelete: Cascade)
+  dateVisite  DateTime
+  typeVisite  String
+  avis        String?
+  composition String?
+  observations String?
+  reportUrl   String?
+  createdAt   DateTime @default(now())
+
+  prescriptions CommissionPrescription[]
+}
+
+model CommissionPrescription {
+  id             String             @id @default(cuid())
+  erpId          String
+  erp            ERP                @relation(fields: [erpId], references: [id], onDelete: Cascade)
+  visitId        String?
+  visit          CommissionVisit?   @relation(fields: [visitId], references: [id])
+  numero         String
+  description    String
+  referenceLegal String?
+  priorite       String             @default("NORMALE")
+  delaiImparti   DateTime?
+  status         PrescriptionStatus @default(OUVERTE)
+  attachments    String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  liftings PrescriptionLifting[]
+}
+
+model PrescriptionLifting {
+  id               String                 @id @default(cuid())
+  prescriptionId   String
+  prescription     CommissionPrescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  technicienId     String
+  technicien       User                   @relation(fields: [technicienId], references: [id])
+  inspectionId     String?
+  inspection       Inspection?            @relation(fields: [inspectionId], references: [id])
+  textAttestation  String
+  travauxRealises  String?
+  signatureUrl     String?
+  tampUrl          String?
+  signedAt         DateTime               @default(now())
+  isValidated      Boolean                @default(false)
+  validatedAt      DateTime?
+  rejectedAt       DateTime?
+  rejectedReason   String?
+  attachments      String?
+  createdAt        DateTime               @default(now())
+}
+
+// ─── Rapports Spéciaux ────────────────────────────────────────────────────────
+
+model SpecialReport {
+  id          String            @id @default(cuid())
+  erpId       String
+  erp         ERP               @relation(fields: [erpId], references: [id], onDelete: Cascade)
+  reportType  SpecialReportType
+  titre       String
+  dateRapport DateTime
+  organisme   String?
+  redacteur   String?
+  conclusions String?
+  fileUrl     String?
+  attachments String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+// ─── Alertes & Audit ─────────────────────────────────────────────────────────
+
+model Alert {
+  id         String   @id @default(cuid())
+  erpId      String
+  targetRole UserRole
+  targetId   String?
+  type       String
+  message    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  readAt     DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
